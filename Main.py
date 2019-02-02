@@ -64,42 +64,35 @@ ground_vertices = (
 
 )
 
-
 def Ground():
     glBegin(GL_QUADS)
 
     x = 0
     for vertex in ground_vertices:
         x += 1
-        glColor3fv((0, 1, 1))
+        glColor3fv((0, 0.25, 0.25))
         glVertex3fv(vertex)
 
     glEnd()
 
 
-def Cube():
+def Player(new_vertices):
     glBegin(GL_QUADS)
 
     for surface in surfaces:
+        x = 0
 
         for vertex in surface:
             x += 1
-            glColor3fv(colors[x])
-            glVertex3fv(vertices[vertex])
+            glColor3fv((0, 0.3, 1))
+            glVertex3fv(new_vertices[vertex])
 
     glEnd()
 
-    glBegin(GL_LINES)
-    for edge in edges:
-        for vertex in edge:
-            glVertex3fv(vertices[vertex])
-    glEnd()
-
-
-def set_vertices(max_distance):
-    x_value_change = random.randrange(-5, 5)
-    y_value_change = 0  # random.randrange(-10,10)
-    z_value_change = random.randrange(-1 * max_distance, -20)
+def set_vertices(x_value, y_value, z_value):
+    x_value_change = x_value - 1
+    y_value_change = y_value
+    z_value_change = z_value
 
     new_vertices = []
     for vert in vertices:
@@ -116,7 +109,6 @@ def set_vertices(max_distance):
         new_vertices.append(new_vert)
 
     return new_vertices
-
 
 def Cubes(new_vertices):
     glBegin(GL_QUADS)
@@ -142,12 +134,42 @@ def main():
     x_move = 0
     y_move = 0
 
-    max_distance = 300
-
     cube_dict = {}
+    x_value = -4
+    z_value = -20
+    y_value = 0
 
-    for x in range(60):
-        cube_dict[x] = set_vertices(max_distance)
+    for x in range(7):
+        x_value = x_value + 2
+        cube_dict[x] = set_vertices(x_value, y_value, z_value)
+
+    for x in range(8, 12):
+        z_value = z_value - 2
+        cube_dict[x] = set_vertices(x_value, y_value, z_value)
+
+    for x in range(13, 14):
+        y_value = y_value + 2
+        cube_dict[x] = set_vertices(x_value, y_value, z_value)
+
+    for x in range(15, 18):
+        z_value = z_value - 2
+        cube_dict[x] = set_vertices(x_value, y_value, z_value)
+
+    for x in range(19, 21):
+        x_value = x_value - 2
+        cube_dict[x] = set_vertices(x_value, y_value, z_value)
+
+    for x in range(22, 23):
+        y_value = y_value + 2
+        cube_dict[x] = set_vertices(x_value, y_value, z_value)
+
+    for x in range(24, 27):
+        z_value = z_value - 2
+        cube_dict[x] = set_vertices(x_value, y_value, z_value)
+
+    for x in range(28, 30):
+        y_value = y_value + 2
+        cube_dict[x] = set_vertices(x_value, y_value, z_value)
 
     object_passed = False
 
@@ -197,6 +219,8 @@ def main():
         for each_cube in cube_dict:
             Cubes(cube_dict[each_cube])
 
+        cube_dict[0] = set_vertices(-5, 0, -20)
+        Player(cube_dict[0])
         pygame.display.flip()
 
 main()
