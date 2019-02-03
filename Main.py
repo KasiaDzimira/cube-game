@@ -125,6 +125,13 @@ def get_vertices(vertex_array):
 
     return [x, y, z]
 
+def check_collision(pos1, pos2):
+    x_diff = abs(pos1[0] - pos2[0])
+    y_diff = abs(pos1[1] - pos2[1])
+    z_diff = abs(pos1[2] - pos2[2])
+
+    return x_diff < 2 and y_diff < 2 and z_diff < 2 or pos1[1] < 0
+
 def Cubes(new_vertices):
     glBegin(GL_QUADS)
 
@@ -146,15 +153,12 @@ def main():
     gluPerspective(45, (display[0] / display[1]), 0.1, 150.0)
     glTranslatef(random.randrange(-5, 5), 0, 0)
 
-    x_move = 0
-    y_move = 0
-    player_move_x = 0
-    player_move_z = 0
-
     cube_dict = {}
     x_value = -4
     z_value = -20
     y_value = 0
+    player_move_speed = 0.1
+    camera_move_speed = 0.3
 
     cube_dict[0] = set_vertices(-5, 0, -20)
 
@@ -193,60 +197,40 @@ def main():
     object_passed = False
 
     while not object_passed:
+        x_move = 0
+        y_move = 0
+        player_move_x = 0
+        player_move_z = 0
+
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT]:
+            x_move = camera_move_speed
+
+        if keys[pygame.K_RIGHT]:
+            x_move = -camera_move_speed
+        
+        if keys[pygame.K_UP]:
+            y_move = -camera_move_speed
+        
+        if keys[pygame.K_DOWN]:
+            y_move = camera_move_speed
+
+        if keys[pygame.K_w]:
+            player_move_z = -player_move_speed
+
+        if keys[pygame.K_s]:
+            player_move_z = player_move_speed
+
+        if keys[pygame.K_a]:
+            player_move_x = -player_move_speed
+
+        if keys[pygame.K_d]:
+            player_move_x = player_move_speed
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 quit()
-
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_LEFT:
-                    x_move = 0.3
-
-                if event.key == pygame.K_RIGHT:
-                    x_move = -0.3
-
-                if event.key == pygame.K_UP:
-                    y_move = -0.3
-
-                if event.key == pygame.K_DOWN:
-                    y_move = 0.3
-
-                if event.key == pygame.K_w:
-                    player_move_z = -0.2
-
-                if event.key == pygame.K_s:
-                    player_move_z = 0.2
-                
-                if event.key == pygame.K_a:
-                    player_move_x = -0.2
-
-                if event.key == pygame.K_d:
-                    player_move_x = 0.2
-
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_LEFT:
-                    x_move = 0
-
-                if event.key == pygame.K_RIGHT:
-                    x_move = 0
-
-                if event.key == pygame.K_UP:
-                    y_move = 0
-
-                if event.key == pygame.K_DOWN:
-                    y_move = 0
-
-                if event.key == pygame.K_w:
-                    player_move_z = 0
-
-                if event.key == pygame.K_s:
-                    player_move_z = 0
-                
-                if event.key == pygame.K_a:
-                    player_move_x = 0
-
-                if event.key == pygame.K_d:
-                    player_move_x = 0
 
         x = glGetDoublev(GL_MODELVIEW_MATRIX)
 
@@ -258,14 +242,21 @@ def main():
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         Ground()
-        for each_cube in cube_dict:
-            Cubes(cube_dict[each_cube])
 
         current_player_pos = get_vertices(cube_dict[0])
         new_pos_x = current_player_pos[0] + player_move_x
         new_pos_y = current_player_pos[1]
         new_pos_z = current_player_pos[2] + player_move_z
-        cube_dict[0] = set_vertices(new_pos_x, new_pos_y, new_pos_z)
+
+        is_collision = False
+        for each_cube in cube_dict:
+            if each_cube != 0 and not is_collision:
+                is_collision = check_collision([new_pos_x, new_pos_y, new_pos_z], get_vertices(cube_dict[each_cube]))
+            Cubes(cube_dict[each_cube])
+            
+        if not is_collision:
+            cube_dict[0] = set_vertices(new_pos_x, new_pos_y, new_pos_z)
+
         Player(cube_dict[0])
         pygame.display.flip()
 
