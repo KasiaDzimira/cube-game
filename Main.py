@@ -110,6 +110,21 @@ def set_vertices(x_value, y_value, z_value):
 
     return new_vertices
 
+def get_vertices(vertex_array):
+    sum_x = 0
+    sum_y = 0
+    sum_z = 0
+    for vert in vertex_array:
+        sum_x += vert[0]
+        sum_y += vert[1]
+        sum_z += vert[2]
+
+    x = sum_x / len(vertex_array) + 1
+    y = sum_y / len(vertex_array)
+    z = sum_z / len(vertex_array)
+
+    return [x, y, z]
+
 def Cubes(new_vertices):
     glBegin(GL_QUADS)
 
@@ -133,11 +148,15 @@ def main():
 
     x_move = 0
     y_move = 0
+    player_move_x = 0
+    player_move_z = 0
 
     cube_dict = {}
     x_value = -4
     z_value = -20
     y_value = 0
+
+    cube_dict[0] = set_vertices(-5, 0, -20)
 
     for x in range(7):
         x_value = x_value + 2
@@ -180,7 +199,6 @@ def main():
                 quit()
 
             if event.type == pygame.KEYDOWN:
-
                 if event.key == pygame.K_LEFT:
                     x_move = 0.3
 
@@ -192,6 +210,18 @@ def main():
 
                 if event.key == pygame.K_DOWN:
                     y_move = 0.3
+
+                if event.key == pygame.K_w:
+                    player_move_z = -0.2
+
+                if event.key == pygame.K_s:
+                    player_move_z = 0.2
+                
+                if event.key == pygame.K_a:
+                    player_move_x = -0.2
+
+                if event.key == pygame.K_d:
+                    player_move_x = 0.2
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LEFT:
@@ -206,6 +236,18 @@ def main():
                 if event.key == pygame.K_DOWN:
                     y_move = 0
 
+                if event.key == pygame.K_w:
+                    player_move_z = 0
+
+                if event.key == pygame.K_s:
+                    player_move_z = 0
+                
+                if event.key == pygame.K_a:
+                    player_move_x = 0
+
+                if event.key == pygame.K_d:
+                    player_move_x = 0
+
         x = glGetDoublev(GL_MODELVIEW_MATRIX)
 
         camera_x = x[3][0]
@@ -219,7 +261,11 @@ def main():
         for each_cube in cube_dict:
             Cubes(cube_dict[each_cube])
 
-        cube_dict[0] = set_vertices(-5, 0, -20)
+        current_player_pos = get_vertices(cube_dict[0])
+        new_pos_x = current_player_pos[0] + player_move_x
+        new_pos_y = current_player_pos[1]
+        new_pos_z = current_player_pos[2] + player_move_z
+        cube_dict[0] = set_vertices(new_pos_x, new_pos_y, new_pos_z)
         Player(cube_dict[0])
         pygame.display.flip()
 
