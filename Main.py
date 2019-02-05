@@ -3,6 +3,7 @@ from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
 import random
+from math import floor, ceil
 
 vertices = (
     (1, -1, -1),
@@ -57,10 +58,10 @@ colors = (
 ground_surfaces = (0, 1, 2, 3)
 
 ground_vertices = (
-    (-10, -0.1, 50),
-    (10, -0.1, 50),
-    (-10, -0.1, -300),
-    (10, -0.1, -300),
+    (-20, -0.1, 50),
+    (20, -0.1, 50),
+    (-20, -0.1, -300),
+    (20, -0.1, -300),
 
 )
 
@@ -130,7 +131,7 @@ def check_collision(pos1, pos2):
     y_diff = abs(pos1[1] - pos2[1])
     z_diff = abs(pos1[2] - pos2[2])
 
-    return x_diff < 2 and y_diff < 2 and z_diff < 2 or pos1[1] < 0
+    return x_diff < 2 and y_diff < 2 and z_diff < 2
 
 def Cubes(new_vertices):
     glBegin(GL_QUADS)
@@ -159,6 +160,9 @@ def main():
     y_value = 0
     player_move_speed = 0.1
     camera_move_speed = 0.3
+    player_vertical_speed = 0
+    gravity = 0.8
+    is_player_grounded = True
 
     cube_dict[0] = set_vertices(-5, 0, -20)
 
@@ -200,6 +204,7 @@ def main():
         x_move = 0
         y_move = 0
         player_move_x = 0
+        player_move_y = 0
         player_move_z = 0
 
         keys = pygame.key.get_pressed()
@@ -227,6 +232,11 @@ def main():
         if keys[pygame.K_d]:
             player_move_x = player_move_speed
 
+        if keys[pygame.K_SPACE] and is_player_grounded:
+            is_player_grounded = False
+            player_vertical_speed = 10
+            player_move_y = player_vertical_speed * 0.1
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -243,19 +253,53 @@ def main():
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
         Ground()
 
+        
+        player_vertical_speed -= gravity
+        player_move_y = player_vertical_speed * 0.1
+
         current_player_pos = get_vertices(cube_dict[0])
         new_pos_x = current_player_pos[0] + player_move_x
-        new_pos_y = current_player_pos[1]
+        new_pos_y = current_player_pos[1] + player_move_y
         new_pos_z = current_player_pos[2] + player_move_z
 
-        is_collision = False
+        is_collision_x = False
+        is_collision_y = False
+        is_collision_z = False
         for each_cube in cube_dict:
-            if each_cube != 0 and not is_collision:
-                is_collision = check_collision([new_pos_x, new_pos_y, new_pos_z], get_vertices(cube_dict[each_cube]))
+            if each_cube != 0 and not is_collision_x and not is_collision_y and not is_collision_z:
+                is_collision_x = True if is_collision_x else check_collision([new_pos_x, current_player_pos[1], current_player_pos[2]], get_vertices(cube_dict[each_cube]))
+                is_collision_y = True if is_collision_y else check_collision([current_player_pos[0], new_pos_y, current_player_pos[2]], get_vertices(cube_dict[each_cube]))
+                is_collision_z = True if is_collision_z else check_collision([current_player_pos[0], current_player_pos[1], new_pos_z], get_vertices(cube_dict[each_cube]))
             Cubes(cube_dict[each_cube])
-            
-        if not is_collision:
-            cube_dict[0] = set_vertices(new_pos_x, new_pos_y, new_pos_z)
+
+        if new_pos_y < 0:
+            is_player_grounded = True
+            player_vertical_speed = 0
+            current_player_pos[1] = 0
+            new_pos_y = 0
+
+        if not is_collision_y and current_player_pos[1] > 0:
+            is_player_grounded = False
+
+        if is_collision_x:
+            if player_move_x > 0: new_pos_x = ceil(current_player_pos[0])
+            elif player_move_x < 0: new_pos_x = floor(current_player_pos[0])
+            else: new_pos_x = current_player_pos[0]
+
+        if is_collision_y:
+            if player_move_y < 0:
+                is_player_grounded = True
+                player_vertical_speed = 0
+            if player_move_y > 0: new_pos_y = ceil(current_player_pos[1])
+            elif player_move_y < 0: new_pos_y = floor(current_player_pos[1])
+            else: new_pos_y = current_player_pos[1]
+
+        if is_collision_z:
+            if player_move_z > 0: new_pos_z = ceil(current_player_pos[2])
+            elif player_move_z < 0: new_pos_z = floor(current_player_pos[2])
+            else: new_pos_z = current_player_pos[2]
+
+        cube_dict[0] = set_vertices(new_pos_x, new_pos_y, new_pos_z)
 
         Player(cube_dict[0])
         pygame.display.flip()
