@@ -2,12 +2,11 @@ import pygame
 from pygame.locals import *
 from OpenGL.GL import *
 from OpenGL.GLU import *
-import random
 from math import floor, ceil
 
-from Ground import Ground
-from Player import Player
-from Cubes import Cubes
+from Models.Ground import Ground
+from Models.Player import Player
+from Models.Cubes import Cubes
 
 
 def get_vertices(vertex_array):
@@ -38,10 +37,10 @@ def main():
     pygame.display.set_mode(display, DOUBLEBUF | OPENGL)
 
     gluPerspective(50, (display[0] / display[1]), 0.01, 150.0)
-    glTranslatef(random.randrange(-5, 5), 0, 0)
+    glTranslatef(-4, -4, 0)
 
     cube_dict = {}
-    x_value = -4
+    x_value = 5
     z_value = -20
     y_value = 0
     player_move_speed = 0.1
@@ -49,17 +48,15 @@ def main():
     player_vertical_speed = 0
     gravity = 0.8
     is_player_grounded = True
-
-
     cubes = Cubes()
-    cube_dict[0] = cubes.set_vertices(-5, 0, -20)
+    cube_dict[0] = cubes.set_vertices(6, 0, -20)
 
     for x in range(7):
-        x_value = x_value + 2
+        z_value = z_value - 2
         cube_dict[x] = cubes.set_vertices(x_value, y_value, z_value)
 
     for x in range(8, 12):
-        z_value = z_value - 2
+        x_value = x_value + 2
         cube_dict[x] = cubes.set_vertices(x_value, y_value, z_value)
 
     for x in range(13, 14):
@@ -103,6 +100,7 @@ def main():
     while not object_passed:
         x_move = 0
         y_move = 0
+        z_move = 0
         player_move_x = 0
         player_move_y = 0
         player_move_z = 0
@@ -123,15 +121,20 @@ def main():
 
         if keys[pygame.K_w]:
             player_move_z = -player_move_speed
+            z_move = player_move_speed
+
 
         if keys[pygame.K_s]:
             player_move_z = player_move_speed
+            z_move = -player_move_speed
 
         if keys[pygame.K_a]:
             player_move_x = -player_move_speed
+            x_move = player_move_speed
 
         if keys[pygame.K_d]:
             player_move_x = player_move_speed
+            x_move = -player_move_speed
 
         if keys[pygame.K_r]:
             should_reset = True
@@ -146,13 +149,7 @@ def main():
                 pygame.quit()
                 quit()
 
-        x = glGetDoublev(GL_MODELVIEW_MATRIX)
-
-        camera_x = x[3][0]
-        camera_y = x[3][1]
-        camera_z = x[3][2]
-
-        glTranslatef(x_move, y_move, 0)
+        glTranslatef(x_move, y_move, z_move)
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
@@ -211,7 +208,9 @@ def main():
             else: new_pos_z = current_player_pos[2]
 
         cube_dict[0] = cubes.set_vertices(new_pos_x, new_pos_y, new_pos_z)
-        if should_reset: cube_dict[0] = cubes.set_vertices(-5, 0, -20)
+        if should_reset:
+            cube_dict[0] = cubes.set_vertices(6, 0, -20)
+            glTranslatef(x_move + 1, 0, z_move - 5)
 
 
         player = Player()
