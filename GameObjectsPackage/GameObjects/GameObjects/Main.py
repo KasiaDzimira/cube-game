@@ -51,6 +51,9 @@ def main():
     cubes = Cubes()
     cube_dict[0] = cubes.set_vertices(6, 0, -20)
 
+    glEnable(GL_BLEND)
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA)
+
     for x in range(7):
         z_value = z_value - 2
         cube_dict[x] = cubes.set_vertices(x_value, y_value, z_value)
@@ -121,20 +124,20 @@ def main():
 
         if keys[pygame.K_w]:
             player_move_z = -player_move_speed
-            z_move = player_move_speed
+            z_move = player_move_speed/2
 
 
         if keys[pygame.K_s]:
             player_move_z = player_move_speed
-            z_move = -player_move_speed
+            z_move = -player_move_speed/2
 
         if keys[pygame.K_a]:
             player_move_x = -player_move_speed
-            x_move = player_move_speed
+            x_move = player_move_speed/2
 
         if keys[pygame.K_d]:
             player_move_x = player_move_speed
-            x_move = -player_move_speed
+            x_move = -player_move_speed/2
 
         if keys[pygame.K_r]:
             should_reset = True
@@ -210,7 +213,7 @@ def main():
         cube_dict[0] = cubes.set_vertices(new_pos_x, new_pos_y, new_pos_z)
         if should_reset:
             cube_dict[0] = cubes.set_vertices(6, 0, -20)
-            glTranslatef(x_move + 1, 0, z_move - 5)
+            glTranslatef(x_move + 1, 0 , z_move - 15)
 
 
         player = Player()
